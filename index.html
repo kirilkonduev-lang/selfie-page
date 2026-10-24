@@ -1,0 +1,73 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Селфи</title>
+</head>
+<body>
+  <h2>Сделать селфи</h2>
+  <p>Разреши доступ к камере, сделай фото и проверь его перед отправкой.</p>
+
+  <button id="start">Включить камеру</button>
+  <br><br>
+  <video id="video" autoplay playsinline
+    style="width:100%;max-width:400px"></video>
+  <br>
+  <button id="take">Сделать фото</button>
+  <br><br>
+  <canvas id="canvas" hidden></canvas>
+  <img id="preview" style="width:100%;max-width:400px">
+  <br>
+  <button id="save">Сохранить селфи</button>
+  <p id="status"></p>
+
+<script>
+const video = document.querySelector("#video");
+const canvas = document.querySelector("#canvas");
+const preview = document.querySelector("#preview");
+const status = document.querySelector("#status");
+let stream, photo;
+
+document.querySelector("#start").onclick = async () => {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user" },
+      audio: false
+    });
+    video.srcObject = stream;
+    status.textContent = "Камера включена.";
+  } catch {
+    status.textContent = "Разреши доступ к камере в браузере.";
+  }
+};
+
+document.querySelector("#take").onclick = () => {
+  if (!stream) {
+    status.textContent = "Сначала включи камеру.";
+    return;
+  }
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext("2d").drawImage(video, 0, 0);
+  photo = canvas.toDataURL("image/jpeg", 0.9);
+  preview.src = photo;
+  status.textContent = "Проверь фото перед сохранением.";
+};
+
+document.querySelector("#save").onclick = () => {
+  if (!photo) {
+    status.textContent = "Сначала сделай фото.";
+    return;
+  }
+  const a = document.createElement("a");
+  a.href = photo;
+  a.download = "selfie.jpg";
+  a.click();
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  status.textContent = "Селфи сохранено.";
+};
+</script>
+</body>
+</html>
